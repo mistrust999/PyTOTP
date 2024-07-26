@@ -44,6 +44,7 @@ class TwoFactorAuthApp:
     ) -> None:
         self.storage_file = storage_file
         self.user_file = user_file
+        self.key_file = key_file
         self.key = self.load_key(key_file)
         self.cipher = Fernet(self.key)
         self.accounts: Dict[str, str] = self.load_accounts()
@@ -58,10 +59,14 @@ class TwoFactorAuthApp:
             with open(key_file, "rb") as f:
                 return f.read()
         else:
-            key = Fernet.generate_key()
-            with open(key_file, "wb") as f:
-                f.write(key)
-            return key
+            return self.generate_key(key_file)
+
+    def generate_key(self, key_file: str) -> bytes:
+        key = Fernet.generate_key()
+        with open(key_file, "wb") as f:
+            f.write(key)
+        logging.info(f"New key generated and saved to {key_file}")
+        return key
 
     def encrypt(self, data: str) -> str:
         return self.cipher.encrypt(data.encode()).decode()
